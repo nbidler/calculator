@@ -1,0 +1,85 @@
+@import url(https://fonts.googleapis.com/css?family=Quicksand);
+
+/* everything */
+* {
+    margin:0;
+    padding: 0;
+    font-family: "Quicksand";
+    text-align: center;
+    vertical-align: top;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+/* actual body */
+#calc_body {
+    height: 50vh;
+    width: 50vw;
+    background-color: #102d76;
+    font-size: 2em;
+    color: white;
+}
+
+ /*for finding the borders of boxes*/
+/*div {*/
+    /*border: 1px solid black;*/
+/*}*/
+
+/*buttons in rows*/
+.item {
+    background-color: #102ea0;
+    height: 15%;
+    width: 20%;
+    display: inline-block;
+    margin: 0.5% 0.5% 0 0.5%;
+    padding: 0.25% 0;
+}
+/*buttons in rows*/
+.butans div {
+
+    height: 90%;
+    width: 23%;
+
+}
+/* numbers */
+.noun {
+
+}
+/* actions */
+.verb {
+
+}
+/* display */
+#display_area {
+    height: 20%;
+    text-align: right;
+    border-radius: 0%;
+    display: inline-block;
+    width:100%;
+    color: #184bf1;
+}
+/* AC and C container */
+#clear {
+    background-color: #163ea8;
+    font-size:0.5em;
+    display: inline-block;
+    width: 100%;
+    height: 10%;
+}
+
+/* AC and C buttons*/
+#clear div {
+    float: right;
+    width: 15%;
+    height: 70%;
+    display: inline-block;
+    margin: 1% 1% 0 0;
+}
+/*C*/
+#clear div:first-of-type {
+    background-color: #184bf1;
+}
+/*AC*/
+#clear div:last-of-type {
+    background-color: #061454;
+}
