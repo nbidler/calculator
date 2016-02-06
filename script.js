@@ -31,17 +31,90 @@ function putInto(typ, val)
             if applicable, make negative (see 2 lines up, from bool)
     ITEM 2
         should be operator or equal sign
-        if EQUAL SIGN - just output calcVal to display
+        if EQUAL SIGN - just output ITEM 1 to display
         if NOT EQUAL SIGN, continue to ITEM 3
     ITEM 3
         if NUMBER, take number from ITEM 1 and operator from ITEM 2 and calculate as normal
             set RESULT to take the place of ITEM 3, then remove the 2 previous array ITEMS
+                START FROM TOP, should have result of first three items,
+                 if was last item, ITEM 2 check should catch termination
+                 if was not, readies for next calculation in sequence
         if EQUAL SIGN, take number from ITEM 1 and operator from ITEM 2
             and use ITEM 1 in place of ITEM 3, then end calculation/display result
-
+    I'm sure I'll get some bugs in here somewhere
 */
 
+function doMath() {
+    var num1; var num2;
+    var negative = false;
 
+    while(true) {
+        //ITEM 1
+        //if it hits an '=' this early, it's the only thing here
+        if (array[0].value == '=') {
+            $('#display_area').html('ready');
+            return;
+        }
+        //if it hits an '-' this early, the first value is negative, and moves the whole list 'forward'
+        else if  (array[0].value == '-') {
+            negative = true;
+            array.shift();
+            continue;
+        }
+        //if a number, accept to be held
+        else if (array[0].type == 'number') {
+            num1 = Number(array[0].value);
+            //if the first item was negative, make the number negative
+            if (negative) {
+                num1 *= -1;
+                negative = false;
+            }
+        }
+        //otherwise, throw out that item and start from top with valid input
+        else {
+            array.shift();
+            continue;
+        }
+        //first number stored
+        //ITEM 2
+        //an '=' here means it was just [value, '='] so pop the '=' from the array and return,
+        //  letting the value be displayed
+        if (array[1].value == '=') {
+            array.pop();
+            return;
+        }
+        //ITEM 3
+        //if number, store value
+        if (array[2].type == 'number') {
+            num2 = Number(array[2].value);
+        }
+        //if '=', re-use first value entered as num2
+        //  and stick '=' on the end to trigger loop termination
+        else  if (array[2].value == '=') {
+            num2 = num1;
+            putInto('equalSign', '=');
+        }
+
+        //now that we have two numbers and an operator, calculate value and store
+        switch(array[1].value){
+            case '+':
+                array[2].value = num1 + num2;
+                break;
+            case '-':
+                array[2].value = num1 - num2;
+                break;
+            case 'x':
+                array[2].value = num1 * num2;
+                break;
+            case '/':
+                array[2].value = num1 / num2;
+                break;
+        };
+        //with new value stored in array[2], shift twice to make it array[0]
+        //  and start process again
+        array.shift();array.shift();
+    }
+}
 
 
 /*
@@ -104,12 +177,9 @@ function addItem(input) {
                 //inputs (new) operator into array
                 buttonPress.value = input;
                 buttonPress.type = 'operator';
-                var operate = {
-                    type: buttonPress.type,
-                    value: buttonPress.value
-                };
-                array.push(operate);
+                putInto(buttonPress.type, buttonPress.value);
             }
+            //
             displayCalc();
             break;
         case '=':
@@ -121,7 +191,15 @@ function addItem(input) {
             buttonPress.type = 'equalSign';
             //put call to do calculation here
             putInto(buttonPress.type, buttonPress.value);
+            //actual parsing and calculations
+            doMath();
+            //display result cal calling displayCalc
             displayCalc();
+            //empty array by setting to empty for next use
+            array=[];
+            //empty current button press for next use
+            buttonPress.type = '';
+            buttonPress.value = '';
             break;
         default:
             console.log("Congratulations, this is the error message. You weren't supposed to even be able to get here.");
@@ -152,6 +230,8 @@ function displayCalc() {
 //allClear empties input and displayOut
 function allClear() {
     array = [];
+    buttonPress.type = '';
+    buttonPress.value = '';
     displayCalc();
 }
 
