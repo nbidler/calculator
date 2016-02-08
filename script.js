@@ -1,22 +1,37 @@
 /**
  * Created by Nick on 2/3/2016.
  */
-
+var buttonPress = function(){
+    this.type = null;
+    this.value = null;
+    this.setType = function(new_type){
+        this.type = new_type;
+    };
+    this.setValue = function(new_value){
+        this.value = new_value;
+    };
+    this.getType = function(){
+        return this.type;
+    };
+    this.getValue = function(){
+        return this.value;
+    };
+    this.resetValues = function(){
+        this.type = null;
+        this.value = null;
+    };
+};
 // input stores a list of items in the order they were received
 var array = [];
 // displayOut is the current thing to be displayed to the user
 
-var buttonPress = {
-    type:'',
-    value:''
-}
+var currentInput = new buttonPress();
 
 function putInto(typ, val)
 {
-    var newEntry = {
-        type: typ,
-        value: val
-    };
+    var newEntry = new buttonPress();
+    newEntry.setType(typ);
+    newEntry.setValue(val);
     array.push(newEntry);
 }
 
@@ -51,19 +66,19 @@ function doMath() {
     while(true) {
         //ITEM 1
         //if it hits an '=' this early, it's the only thing here
-        if (array[0].value == '=') {
+        if (array[0].getValue() == '=') {
             $('#display_area').html('ready');
             return;
         }
         //if it hits an '-' this early, the first value is negative, and moves the whole list 'forward'
-        else if  (array[0].value == '-') {
+        else if  (array[0].getValue() == '-') {
             negative = true;
             array.shift();
             continue;
         }
         //if a number, accept to be held
         else if (array[0].type == 'number') {
-            num1 = Number(array[0].value);
+            num1 = Number(array[0].getValue());
             //if the first item was negative, make the number negative
             if (negative) {
                 num1 *= -1;
@@ -79,37 +94,37 @@ function doMath() {
         //ITEM 2
         //an '=' here means it was just [value, '='] so pop the '=' from the array and return,
         //  letting the value be displayed
-        if (array[1].value == '=') {
+        if (array[1].getValue() == '=') {
             array.pop();
             return;
         }
         //ITEM 3
         //if number, store value
-        if (array[2].type == 'number') {
-            num2 = Number(array[2].value);
+        if (array[2].getType() == 'number') {
+            num2 = Number(array[2].getValue());
         }
         //if '=', re-use first value entered as num2
         //  and stick '=' on the end to trigger loop termination
-        else  if (array[2].value == '=') {
+        else  if (array[2].getValue() == '=') {
             num2 = num1;
             putInto('equalSign', '=');
         }
 
         //now that we have two numbers and an operator, calculate value and store
-        switch(array[1].value){
+        switch(array[1].getValue()){
             case '+':
-                array[2].value = num1 + num2;
+                array[2].setValue(num1 + num2);
                 break;
             case '-':
-                array[2].value = num1 - num2;
+                array[2].setValue(num1 - num2);
                 break;
             case 'x':
-                array[2].value = num1 * num2;
+                array[2].setValue(num1 * num2);
                 break;
             case '/':
-                array[2].value = num1 / num2;
+                array[2].setValue(num1 / num2);
                 break;
-        };
+        }
         //with new value stored in array[2], shift twice to make it array[0]
         //  and start process again
         array.shift();array.shift();
@@ -118,7 +133,7 @@ function doMath() {
 
 
 /*
- addItem - 1 param, no return - calls displayCalc to change display
+ processInput - 1 param, no return - calls displayCalc to change display
      if number - add to inputHolder to make string of large contiguous number
      if operator - put current content of inputHolder in input array,
      put current operator in input array,
@@ -126,7 +141,7 @@ function doMath() {
      if equalSign - put current content of inputHolder in input array,
      display answer
  */
-function addItem(input) {
+function processInput(input) {
     switch (input) {
         case '.':
         case '0':
@@ -140,44 +155,46 @@ function addItem(input) {
         case '8':
         case '9':
             //if '.', check if already in value - if already in value, disregard input
-            if ((input == '.') && (buttonPress.value.indexOf('.') > -1))
+            if ((input == '.') && (currentInput.getValue().indexOf('.') > -1))
             {
-                break;
+                return;
             }
 
             //if number, check if previous object was number
             //  if so, string + string, i.e. '2' and '2' make '22'
             //else is new number
-            if (buttonPress.type == 'number') {
-                buttonPress.value += input;
+
+            if (currentInput.getType() == 'number') {
+                currentInput.setValue(currentInput.getValue() + input);
             }
             else {
-                buttonPress.value = input;
+                currentInput.setValue(input);
             }
-            buttonPress.type = 'number';
+            currentInput.setType('number');
 
-            console.log("current buttonPress : ", buttonPress);
-            $('#display_area').html(buttonPress.value);
+            console.log("current currentInput : ", currentInput);
+            console.log("current value : ", currentInput.getValue());
+            $('#display_area').html(currentInput.getValue());
             break;
         case '+':
         case '-':
         case 'x':
         case '/':
-            if (buttonPress.type == 'number') {
+            if (currentInput.type == 'number') {
                 //assumes previous input was number, pushes number into array
-                putInto(buttonPress.type, buttonPress.value);
+                putInto(currentInput.getType(), currentInput.getValue());
                 //inputs operator into array
-                buttonPress.value = input;
-                buttonPress.type = 'operator';
-                putInto(buttonPress.type, buttonPress.value);
+                currentInput.setValue(input);
+                currentInput.setType('operator');
+                putInto(currentInput.getType(), currentInput.getValue());
             }
             else {
                 //pressed a second operator, first must have been wrong, remove old
                 array.pop();
                 //inputs (new) operator into array
-                buttonPress.value = input;
-                buttonPress.type = 'operator';
-                putInto(buttonPress.type, buttonPress.value);
+                currentInput.setValue(input);
+                currentInput.setType('operator');
+                putInto(currentInput.getType(), currentInput.getValue());
             }
             //
             displayCalc();
@@ -185,12 +202,12 @@ function addItem(input) {
         case '=':
             //assumes previous input was number, pushes number into array
             //  allows input of operator for advanced operations
-            putInto(buttonPress.type, buttonPress.value);
+            putInto(currentInput.getType(), currentInput.getValue());
             //inputs operator into array
-            buttonPress.value = input;
-            buttonPress.type = 'equalSign';
+            currentInput.setValue(input);
+            currentInput.setType('equalSign');
             //put call to do calculation here
-            putInto(buttonPress.type, buttonPress.value);
+            putInto(currentInput.getType(), currentInput.getValue());
             //actual parsing and calculations
             doMath();
             //display result cal calling displayCalc
@@ -198,22 +215,12 @@ function addItem(input) {
             //empty array by setting to empty for next use
             array=[];
             //empty current button press for next use
-            buttonPress.type = '';
-            buttonPress.value = '';
+            currentInput.resetValues();
             break;
         default:
             console.log("Congratulations, this is the error message. You weren't supposed to even be able to get here.");
             break;
     }
-
-    //console.log("current buttonPress : ", buttonPress);
-    //console.log("current array : ", array);
-    // output current button press
-    /*for (var i = 0; i< array.length; i++)
-    {
-        console.log(array[i].type);
-        console.log(array[i].value);
-    }*/
 }
 
 //puts contents of array to the output in the form of a string
@@ -221,33 +228,30 @@ function displayCalc() {
     var displayStr = '';
     for (var i = 0; i< array.length; i++)
     {
-        displayStr +=array[i].value;
+        displayStr +=array[i].getValue();
     }
-
     $('#display_area').html(displayStr);
 }
 
 //allClear empties input and displayOut
 function allClear() {
     array = [];
-    buttonPress.type = '';
-    buttonPress.value = '';
+    currentInput.resetValues();
     displayCalc();
 }
 
 //clear empties array of last number entry (and operator, if that was last) and displayOut
 function clear() {
-    if (buttonPress.type == 'operator')
+    if (currentInput.getType() == 'operator')
     {array.pop();}
     array.pop();
     //if not last item, set values to last item's values
     if (array.length >0) {
-        buttonPress.type = array[array.length - 1].type;
-        buttonPress.value = array[array.length - 1].value;
+        currentInput.setType(array[array.length - 1].getType());
+        currentInput.setValue(array[array.length - 1].getValue());
     }
     else {
-        buttonPress.type = '';
-        buttonPress.value = '';
+        currentInput.resetValues();
     }
     displayCalc();
 }
@@ -256,7 +260,6 @@ $(document).ready(function(){
     //on click, get contained value - if not a number, do action - if number, pass to be further sorted
     $('.item').click(function(){
         var val = $(this).text();
-        //console.log("btn clicked : ", val);
         switch (val) {
             case 'AC':
                 allClear();
@@ -265,10 +268,8 @@ $(document).ready(function(){
                 clear();
                 break;
             default:
-                addItem(val);
+                processInput(val);
                 break;
         }
-        //checking input array
-
     });
 });
