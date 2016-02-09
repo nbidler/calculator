@@ -24,8 +24,8 @@ var buttonPress = function(){
 
 //I am a terrible person but a global is the only way I could think of to save my 'previous two entries'
 //  without a root canal-ing the whole logic behind how it gets and calculates input
-//      ONLY to store 2 previous input items and ONLY to be used in case the user inputs another '='
-var previous = [];
+//      ONLY to store 2 previous input items + bool to check if there was earlier calculation
+//var previous = [null, null, false];
 
 // input stores a list of items in the order they were received
 var array = [];
@@ -72,24 +72,18 @@ function doMath() {
     var negative = false;
 
     while(true) {
-        /*console.log("doMath");
+        console.log("doMath");
         var str = '';
         for (var i = 0; i< array.length; i++)
         {
             str += array[i].getValue() + ' ';
         }
         console.log(str);
-        console.log("doMath top");*/
+        console.log("doMath top");
         //ITEM 1
         //if it hits an '=' this early, it's the only thing here
         if (array[0].getValue() == '=') {
-            //if array already has a number in (from earlier
-            /*if () {
-
-            }
-            else {*/
-                array[0].setValue('Ready');
-            //}
+            array[0].setValue('Ready');
             return;
         }
         //if it hits an '-' this early, the first value is negative, and moves the whole list 'forward'
@@ -118,15 +112,33 @@ function doMath() {
         //  letting the value be displayed
         if (array[1].getValue() == '=') {
             array.pop();
+            // !!!!!! THIS MAY BREAK EVERYTHING
+            //if there was a previous entry and they pressed '=', reapply calculation
+            /*if (previous[2]){
 
-            /*console.log("exit test");
+                putInto('operator', previous[0]);
+                putInto('number', previous[1]);
+                putInto('equalSign', '=');
+                previous[0] = null;
+                previous[1] = null;
+                previous[2] = false;
+                continue;
+            }
+            //if there was not a previous calculation, set previous[2] to true to show it
+            else {
+                previous[2] = true;
+            }*/
+            // !!!!!! END OF BREAK EVERYTHING CHANGE
+
+
+            console.log("exit test");
             var str = '';
             for (var i = 0; i< array.length; i++)
             {
                 str += array[i].getValue() + 'L';
             }
             console.log(str);
-            console.log("exit");*/
+            console.log("exit");
 
             return;
         }
@@ -142,6 +154,11 @@ function doMath() {
             putInto('equalSign', '=');
         }
         array[2].setType('number');
+
+        //store last operation in global vars
+        /*previous[0] = array[1].getValue();
+        previous[1] = array[2].getValue();*/
+
         //now that we have two numbers and an operator, calculate value and store
         switch(array[1].getValue()){
             case '+':
@@ -165,9 +182,6 @@ function doMath() {
                 console.log("Congratulations, this is the error message. You weren't supposed to even be able to get here.");
                 break;
         }
-
-        previous[0] = array[1].getValue();
-        previous[1] = array[2].getValue();
         //with new value stored in array[2], and last operation stored in previous[] 0 and 1, shift twice to make it array[0]
         //  and start process again
         array.shift();array.shift();
@@ -183,6 +197,9 @@ function doMath() {
      display answer
      if equalSign - put current content of inputHolder in input array,
      display answer
+
+I could honestly remove currentInput for the operators and equalSign parts for efficiency
+    but it's still useful as a secondary tracker for the most recent input
  */
 function processInput(input) {
     switch (input) {
@@ -286,6 +303,7 @@ function displayCalc() {
 //allClear empties input and displayOut
 function allClear() {
     array = [];
+    //previous = [null, null, false];
     currentInput.resetValues();
     displayCalc();
 }
