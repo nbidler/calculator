@@ -21,6 +21,12 @@ var buttonPress = function(){
         this.value = null;
     };
 };
+
+//I am a terrible person but a global is the only way I could think of to save my 'previous two entries'
+//  without a root canal-ing the whole logic behind how it gets and calculates input
+//      ONLY to store 2 previous input items and ONLY to be used in case the user inputs another '='
+var previous = [];
+
 // input stores a list of items in the order they were received
 var array = [];
 // displayOut is the current thing to be displayed to the user
@@ -60,22 +66,30 @@ function putInto(typ, val)
 */
 
 function doMath() {
+    //declare 2 variables for numbers, num1 and num2
     var num1; var num2;
+    //declare a bool in case first entry is a '-' -- will be used to make first number entry a negative
     var negative = false;
 
     while(true) {
-        console.log("doMath");
+        /*console.log("doMath");
         var str = '';
         for (var i = 0; i< array.length; i++)
         {
             str += array[i].getValue() + ' ';
         }
         console.log(str);
-        console.log("doMath top");
+        console.log("doMath top");*/
         //ITEM 1
         //if it hits an '=' this early, it's the only thing here
         if (array[0].getValue() == '=') {
-            array[0].setValue('Ready');
+            //if array already has a number in (from earlier
+            /*if () {
+
+            }
+            else {*/
+                array[0].setValue('Ready');
+            //}
             return;
         }
         //if it hits an '-' this early, the first value is negative, and moves the whole list 'forward'
@@ -103,16 +117,16 @@ function doMath() {
         //an '=' here means it was just [value, '='] so pop the '=' from the array and return,
         //  letting the value be displayed
         if (array[1].getValue() == '=') {
-            //array.pop();
+            array.pop();
 
-            console.log("exit test");
+            /*console.log("exit test");
             var str = '';
             for (var i = 0; i< array.length; i++)
             {
                 str += array[i].getValue() + 'L';
             }
             console.log(str);
-            console.log("exit");
+            console.log("exit");*/
 
             return;
         }
@@ -140,13 +154,21 @@ function doMath() {
                 array[2].setValue(num1 * num2);
                 break;
             case '/':
+                if (num2 == 0) {
+                    allClear();
+                    $('#display_area').text('Error');
+                    return;
+                }
                 array[2].setValue(num1 / num2);
                 break;
             default:
                 console.log("Congratulations, this is the error message. You weren't supposed to even be able to get here.");
                 break;
         }
-        //with new value stored in array[2], shift twice to make it array[0]
+
+        previous[0] = array[1].getValue();
+        previous[1] = array[2].getValue();
+        //with new value stored in array[2], and last operation stored in previous[] 0 and 1, shift twice to make it array[0]
         //  and start process again
         array.shift();array.shift();
     }
@@ -181,6 +203,9 @@ function processInput(input) {
                 return;
             }
 
+            if (currentInput.getType() == 'equalSign') {
+                allClear();
+            }
             //if number, check if previous object was number
             //  if so, string + string, i.e. '2' and '2' make '22'
             //else is new number
@@ -193,7 +218,7 @@ function processInput(input) {
             }
             currentInput.setType('number');
 
-            $('#display_area').html(currentInput.getValue());
+            $('#display_area').text($('#display_area').text() + input);
             break;
         case '+':
         case '-':
@@ -202,20 +227,19 @@ function processInput(input) {
             if (currentInput.getType() == 'number') {
                 //assumes previous input was number, pushes number into array
                 putInto(currentInput.getType(), currentInput.getValue());
-                //inputs operator into array
-                currentInput.setValue(input);
-                currentInput.setType('operator');
-                putInto(currentInput.getType(), currentInput.getValue());
+            }
+            else if ((currentInput.getType() == 'equalSign') && (array[0].getValue() != 'Ready')) {
+                //Leave existing value in the array, presumed to be number
             }
             else {
                 //pressed a second operator, first must have been wrong, remove old
                 array.pop();
-                //inputs (new) operator into array
-                currentInput.setValue(input);
-                currentInput.setType('operator');
-                putInto(currentInput.getType(), currentInput.getValue());
             }
-            //
+            //inputs (new) operator into array
+            currentInput.setValue(input);
+            currentInput.setType('operator');
+            putInto(currentInput.getType(), currentInput.getValue());
+            //and displays whole equation thus far
             displayCalc();
             break;
         case '=':
