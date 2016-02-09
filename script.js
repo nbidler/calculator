@@ -56,7 +56,7 @@ function putInto(typ, val)
                  if was not, readies for next calculation in sequence
         if EQUAL SIGN, take number from ITEM 1 and operator from ITEM 2
             and use ITEM 1 in place of ITEM 3, then end calculation/display result
-    I'm sure I'll get some bugs in here somewhere
+    NOTE - purely array manipulation, all displaying is done by displayCalc function
 */
 
 function doMath() {
@@ -64,14 +64,22 @@ function doMath() {
     var negative = false;
 
     while(true) {
+        console.log("doMath");
+        var str = '';
+        for (var i = 0; i< array.length; i++)
+        {
+            str += array[i].getValue() + ' ';
+        }
+        console.log(str);
+        console.log("doMath top");
         //ITEM 1
         //if it hits an '=' this early, it's the only thing here
         if (array[0].getValue() == '=') {
-            $('#display_area').html('ready');
+            array[0].setValue('Ready');
             return;
         }
         //if it hits an '-' this early, the first value is negative, and moves the whole list 'forward'
-        else if  (array[0].getValue() == '-') {
+        else if (array[0].getValue() == '-') {
             negative = true;
             array.shift();
             continue;
@@ -95,7 +103,17 @@ function doMath() {
         //an '=' here means it was just [value, '='] so pop the '=' from the array and return,
         //  letting the value be displayed
         if (array[1].getValue() == '=') {
-            array.pop();
+            //array.pop();
+
+            console.log("exit test");
+            var str = '';
+            for (var i = 0; i< array.length; i++)
+            {
+                str += array[i].getValue() + 'L';
+            }
+            console.log(str);
+            console.log("exit");
+
             return;
         }
         //ITEM 3
@@ -109,7 +127,7 @@ function doMath() {
             num2 = num1;
             putInto('equalSign', '=');
         }
-
+        array[2].setType('number');
         //now that we have two numbers and an operator, calculate value and store
         switch(array[1].getValue()){
             case '+':
@@ -123,6 +141,9 @@ function doMath() {
                 break;
             case '/':
                 array[2].setValue(num1 / num2);
+                break;
+            default:
+                console.log("Congratulations, this is the error message. You weren't supposed to even be able to get here.");
                 break;
         }
         //with new value stored in array[2], shift twice to make it array[0]
@@ -172,15 +193,13 @@ function processInput(input) {
             }
             currentInput.setType('number');
 
-            console.log("current currentInput : ", currentInput);
-            console.log("current value : ", currentInput.getValue());
             $('#display_area').html(currentInput.getValue());
             break;
         case '+':
         case '-':
         case 'x':
         case '/':
-            if (currentInput.type == 'number') {
+            if (currentInput.getType() == 'number') {
                 //assumes previous input was number, pushes number into array
                 putInto(currentInput.getType(), currentInput.getValue());
                 //inputs operator into array
@@ -202,7 +221,9 @@ function processInput(input) {
         case '=':
             //assumes previous input was number, pushes number into array
             //  allows input of operator for advanced operations
-            putInto(currentInput.getType(), currentInput.getValue());
+            if (currentInput.getType() == 'number') {
+                putInto(currentInput.getType(), currentInput.getValue());
+            }
             //inputs operator into array
             currentInput.setValue(input);
             currentInput.setType('equalSign');
@@ -212,15 +233,20 @@ function processInput(input) {
             doMath();
             //display result cal calling displayCalc
             displayCalc();
-            //empty array by setting to empty for next use
-            array=[];
-            //empty current button press for next use
-            currentInput.resetValues();
             break;
         default:
             console.log("Congratulations, this is the error message. You weren't supposed to even be able to get here.");
             break;
     }
+
+    console.log("input");
+    var str = '';
+    for (var i = 0; i< array.length; i++)
+    {
+        str += array[i].getValue() + 'P';
+    }
+    console.log(str);
+    console.log("input end");
 }
 
 //puts contents of array to the output in the form of a string
