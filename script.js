@@ -4,28 +4,30 @@
 var buttonPress = function(){
     this.type = null;
     this.value = null;
-    this.setType = function(new_type){
-        this.type = new_type;
-    };
-    this.setValue = function(new_value){
-        this.value = new_value;
-    };
-    this.getType = function(){
-        return this.type;
-    };
-    this.getValue = function(){
-        return this.value;
-    };
-    this.resetValues = function(){
-        this.type = null;
-        this.value = null;
-    };
+    this.setType = function(new_type){this.type = new_type;};
+    this.setValue = function(new_value){this.value = new_value;};
+    this.getType = function(){return this.type;};
+    this.getValue = function(){return this.value;};
+    this.resetValues = function(){this.type = null;this.value = null;};
 };
 
 //I am a terrible person but a global is the only way I could think of to save my 'previous two entries'
 //  without a root canal-ing the whole logic behind how it gets and calculates input
 //      ONLY to store 2 previous input items + bool to check if there was earlier calculation
-//var previous = [null, null, false];
+var holdLastOperation = function() {
+    this.previousOperator = null;
+    this.previousNumber = null;
+    this.previousRun = false;
+    this.setOp = function(new_op){this.previousOperator = new_op;};
+    this.getOp = function(){return this.previousOperator;};
+    this.setNum = function(new_num){this.previousNumber = new_num;};
+    this.getNum = function(){return this.previousNumber;};
+    this.setRun = function(new_Run){this.previousRun = new_Run;};
+    this.getRun = function(){return this.previousRun;};
+    this.resetValues = function(){this.previousOperator = null;this.previousNumber = null;this.previousRun = false;};
+};
+
+var previous = new holdLastOperation();
 
 // input stores a list of items in the order they were received
 var array = [];
@@ -70,21 +72,23 @@ function doMath() {
     var num1; var num2;
     //declare a bool in case first entry is a '-' -- will be used to make first number entry a negative
     var negative = false;
+    var notFinished = true;
 
-    while(true) {
-        console.log("doMath");
+    while(notFinished) {
+        /*console.log("doMath");
         var str = '';
         for (var i = 0; i< array.length; i++)
         {
             str += array[i].getValue() + ' ';
         }
         console.log(str);
-        console.log("doMath top");
+        console.log("doMath top");*/
         //ITEM 1
         //if it hits an '=' this early, it's the only thing here
         if (array[0].getValue() == '=') {
             array[0].setValue('Ready');
-            return;
+            notFinished = false;
+            continue;
         }
         //if it hits an '-' this early, the first value is negative, and moves the whole list 'forward'
         else if (array[0].getValue() == '-') {
@@ -112,35 +116,16 @@ function doMath() {
         //  letting the value be displayed
         if (array[1].getValue() == '=') {
             array.pop();
-            // !!!!!! THIS MAY BREAK EVERYTHING
-            //if there was a previous entry and they pressed '=', reapply calculation
-            /*if (previous[2]){
-
-                putInto('operator', previous[0]);
-                putInto('number', previous[1]);
-                putInto('equalSign', '=');
-                previous[0] = null;
-                previous[1] = null;
-                previous[2] = false;
-                continue;
-            }
-            //if there was not a previous calculation, set previous[2] to true to show it
-            else {
-                previous[2] = true;
-            }*/
-            // !!!!!! END OF BREAK EVERYTHING CHANGE
-
-
-            console.log("exit test");
+            /*console.log("exit test");
             var str = '';
             for (var i = 0; i< array.length; i++)
             {
                 str += array[i].getValue() + 'L';
             }
             console.log(str);
-            console.log("exit");
-
-            return;
+            console.log("exit");*/
+            notFinished = false;
+            continue;
         }
         //ITEM 3
         //if number, store value
@@ -159,6 +144,10 @@ function doMath() {
         /*previous[0] = array[1].getValue();
         previous[1] = array[2].getValue();*/
 
+        previous.setOp(array[1].getValue());
+        previous.setNum(array[2].getValue());
+        previous.setRun(true);
+
         //now that we have two numbers and an operator, calculate value and store
         switch(array[1].getValue()){
             case '+':
@@ -172,19 +161,20 @@ function doMath() {
                 break;
             case '/':
                 if (num2 == 0) {
-                    allClear();
-                    $('#display_area').text('Error');
-                    return;
+                    putInto('errorCatch','Error');
+                    notFinished = false;
+                    continue;
                 }
                 array[2].setValue(num1 / num2);
                 break;
             default:
                 console.log("Congratulations, this is the error message. You weren't supposed to even be able to get here.");
+                notFinished = false;
                 break;
         }
         //with new value stored in array[2], and last operation stored in previous[] 0 and 1, shift twice to make it array[0]
         //  and start process again
-        array.shift();array.shift();
+        array.splice(0,2);
     }
 }
 
@@ -222,6 +212,7 @@ function processInput(input) {
 
             if (currentInput.getType() == 'equalSign') {
                 allClear();
+                $('#display_area').text(' ');
             }
             //if number, check if previous object was number
             //  if so, string + string, i.e. '2' and '2' make '22'
@@ -265,6 +256,13 @@ function processInput(input) {
             if (currentInput.getType() == 'number') {
                 putInto(currentInput.getType(), currentInput.getValue());
             }
+            //if user hits '=' 2 or more times consecutively, repeat last operation
+            //  and push previous operator and operand to the stack
+            else if ((currentInput.getType() == 'equalSign') && previous.getRun()){
+                putInto('operator', previous.getOp());
+                putInto('number', previous.getNum());
+                previous.setRun(false);
+            }
             //inputs operator into array
             currentInput.setValue(input);
             currentInput.setType('equalSign');
@@ -280,14 +278,14 @@ function processInput(input) {
             break;
     }
 
-    console.log("input");
+    /*console.log("input");
     var str = '';
     for (var i = 0; i< array.length; i++)
     {
         str += array[i].getValue() + 'P';
     }
     console.log(str);
-    console.log("input end");
+    console.log("input end");*/
 }
 
 //puts contents of array to the output in the form of a string
@@ -303,7 +301,7 @@ function displayCalc() {
 //allClear empties input and displayOut
 function allClear() {
     array = [];
-    //previous = [null, null, false];
+    previous.resetValues();
     currentInput.resetValues();
     displayCalc();
 }
